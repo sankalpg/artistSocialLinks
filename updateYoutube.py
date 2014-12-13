@@ -15,9 +15,10 @@ from joblib import Parallel, delayed
 import multiprocessing
 import csv
 import urllib3
+# AIzaSyBpMTMC61LBMinww2etKXw2CrqwtbWjemI
 
-youtubeGetChannelIdUrl = "https://www.googleapis.com/youtube/v3/search?part=snippet&type=channel&maxResults=2&key=AIzaSyCg0kT3wqdZfjHz1a1vJzZvdpL28rMiRQA&q="
-youtubeGetActivityUrl = "https://www.googleapis.com/youtube/v3/activities?part=snippet%2CcontentDetails&maxResults=5&key=AIzaSyCg0kT3wqdZfjHz1a1vJzZvdpL28rMiRQA&channelId="
+youtubeGetChannelIdUrl = "https://www.googleapis.com/youtube/v3/search?part=snippet&type=channel&maxResults=2&key=AIzaSyBpMTMC61LBMinww2etKXw2CrqwtbWjemI&q="#"https://www.googleapis.com/youtube/v3/search?part=snippet&type=channel&maxResults=2&key=AIzaSyCg0kT3wqdZfjHz1a1vJzZvdpL28rMiRQA&q="
+youtubeGetActivityUrl = "https://www.googleapis.com/youtube/v3/activities?part=snippet%2CcontentDetails&maxResults=5&key=AIzaSyBpMTMC61LBMinww2etKXw2CrqwtbWjemI&channelId="
 
 def apiActivityGet(uid,idType):
 	
