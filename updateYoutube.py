@@ -16,7 +16,7 @@ import multiprocessing
 import csv
 import urllib3
 # AIzaSyBpMTMC61LBMinww2etKXw2CrqwtbWjemI
-youtubeKey = 'AIzaSyBsm7SLV0Xo_2pc3NnLPS0LXqSz4LSBIZw'
+youtubeKey = 'AIzaSyDeZXABKSQATB-LjcxeOw3M3ppInSjEwzc'
 youtubeGetChannelIdUrl = "https://www.googleapis.com/youtube/v3/search?part=snippet&type=channel&maxResults=2&key=" + youtubeKey + "&q="#"https://www.googleapis.com/youtube/v3/search?part=snippet&type=channel&maxResults=2&key=AIzaSyCg0kT3wqdZfjHz1a1vJzZvdpL28rMiRQA&q="
 youtubeGetActivityUrl = "https://www.googleapis.com/youtube/v3/activities?part=snippet%2CcontentDetails&maxResults=5&key=" + youtubeKey + "&channelId=" #AIzaSyBpMTMC61LBMinww2etKXw2CrqwtbWjemI"
 
