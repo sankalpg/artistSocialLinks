@@ -83,6 +83,9 @@ def getUpdate(artistId,url):
 	if url.find('/user/') != -1:
 		uid = url[28:]
 		idType = 'name'
+	else:
+		uid = url[23:]
+		idType = 'name'
 
 	(channelId,videoIds,publicationTimes) = apiActivityGet(uid,idType)	
 	# print channelId + '\t' + str(videoIds) + '\t' + str(publicationTimes)
