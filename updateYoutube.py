@@ -16,9 +16,9 @@ import multiprocessing
 import csv
 import urllib3
 # AIzaSyBpMTMC61LBMinww2etKXw2CrqwtbWjemI
-
-youtubeGetChannelIdUrl = "https://www.googleapis.com/youtube/v3/search?part=snippet&type=channel&maxResults=2&key=AIzaSyBpMTMC61LBMinww2etKXw2CrqwtbWjemI&q="#"https://www.googleapis.com/youtube/v3/search?part=snippet&type=channel&maxResults=2&key=AIzaSyCg0kT3wqdZfjHz1a1vJzZvdpL28rMiRQA&q="
-youtubeGetActivityUrl = "https://www.googleapis.com/youtube/v3/activities?part=snippet%2CcontentDetails&maxResults=5&key=AIzaSyBpMTMC61LBMinww2etKXw2CrqwtbWjemI&channelId="
+youtubeKey = 'AIzaSyBsm7SLV0Xo_2pc3NnLPS0LXqSz4LSBIZw'
+youtubeGetChannelIdUrl = "https://www.googleapis.com/youtube/v3/search?part=snippet&type=channel&maxResults=2&key=" + youtubeKey + "&q="#"https://www.googleapis.com/youtube/v3/search?part=snippet&type=channel&maxResults=2&key=AIzaSyCg0kT3wqdZfjHz1a1vJzZvdpL28rMiRQA&q="
+youtubeGetActivityUrl = "https://www.googleapis.com/youtube/v3/activities?part=snippet%2CcontentDetails&maxResults=5&key=" + youtubeKey + "&channelId=" #AIzaSyBpMTMC61LBMinww2etKXw2CrqwtbWjemI"
 
 def apiActivityGet(uid,idType):
 	
@@ -26,6 +26,7 @@ def apiActivityGet(uid,idType):
 	if idType == 'name':
 		url = youtubeGetChannelIdUrl
 		url += uid
+		print url
 
 		#response = json.load( urllib2.urlopen( url ) )
 		#print type(urllib2.urlopen( url ))
