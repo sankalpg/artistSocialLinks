@@ -81,17 +81,25 @@ def getUpdate(artistId,url):
 		idType = 'name'
 
 	(channelId,videoIds,publicationTimes) = apiActivityGet(uid,idType)	
-	print channelId + '\t' + str(videoIds) + '\t' + str(publicationTimes)
-
+	# print channelId + '\t' + str(videoIds) + '\t' + str(publicationTimes)
+	return artistId, channelId, videoIds, publicationTimes
 
 def readLinkFile(filname):
 	inputs = open(filname,'rb')
+	outputs = open('youtubeUpdate.txt','wb')
+
 	csvReadr = csv.reader(inputs, delimiter = '\t')
 	csvReadr.next() #skip header
+
+	csvWriter = csv.writer(outputs, delimiter = '\t')
+	csvWriter.writerow(['artistId','channelId','Recently Uploaded Videos','Upload Times'])
 	for idx,row in enumerate(csvReadr):
 		if idx < 5:
 			artistId = row[0]
 			url = row[1]
 			update = getUpdate(artistId,url)
+			csvWriter.writerow(update)
 		else:
 			break
+	inputs.close()
+	outputs.close()
