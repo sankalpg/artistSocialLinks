@@ -26,7 +26,7 @@ def apiActivityGet(uid,idType):
 	if idType == 'name':
 		url = youtubeGetChannelIdUrl
 		url += uid
-		print url
+		# print url
 
 		#response = json.load( urllib2.urlopen( url ) )
 		#print type(urllib2.urlopen( url ))
@@ -48,6 +48,8 @@ def apiActivityGet(uid,idType):
 	if idType == 'channel':
 		channelId = uid
 
+	if channelId == None:
+		return ('',[],[])
 	url = youtubeGetActivityUrl
 	url += channelId
 	# print url
@@ -86,22 +88,34 @@ def getUpdate(artistId,url):
 	# print channelId + '\t' + str(videoIds) + '\t' + str(publicationTimes)
 	return artistId, channelId, videoIds, publicationTimes
 
+outputs = open('youtubeUpdate.txt','wb')
+csvWriter = csv.writer(outputs, delimiter = '\t')
+csvWriter.writerow(['artistId','channelId','Recently Uploaded Videos','Upload Times'])
+
 def readLinkFile(filname):
 	inputs = open(filname,'rb')
-	outputs = open('youtubeUpdate.txt','wb')
+	
 
 	csvReadr = csv.reader(inputs, delimiter = '\t')
 	csvReadr.next() #skip header
 
-	csvWriter = csv.writer(outputs, delimiter = '\t')
-	csvWriter.writerow(['artistId','channelId','Recently Uploaded Videos','Upload Times'])
-	for idx,row in enumerate(csvReadr):
-		if idx < 5:
-			artistId = row[0]
-			url = row[1]
-			update = getUpdate(artistId,url)
-			csvWriter.writerow(update)
-		else:
-			break
+	
+	num_cores = multiprocessing.cpu_count()- 1
+
+	results = Parallel(n_jobs=num_cores)(delayed(updateAndwrite)(i,idx) for idx,i in enumerate(csvReadr))  
+	# for idx,row in enumerate(csvReadr):
+	# 	if idx < 5:
+			
+	# 	else:
+	# 		break
 	inputs.close()
 	outputs.close()
+	return results
+
+def updateAndwrite(row,idx):
+	print idx
+	artistId = row[0]
+	url = row[1]
+	update = getUpdate(artistId,url)
+	csvWriter.writerow(update)
+	return 'done'
