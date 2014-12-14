@@ -15,6 +15,7 @@ from joblib import Parallel, delayed
 import multiprocessing
 import csv
 import urllib3
+import dateutil.parser
 # AIzaSyBpMTMC61LBMinww2etKXw2CrqwtbWjemI
 youtubeKey = 'AIzaSyDeZXABKSQATB-LjcxeOw3M3ppInSjEwzc'
 youtubeGetChannelIdUrl = "https://www.googleapis.com/youtube/v3/search?part=snippet&type=channel&maxResults=2&key=" + youtubeKey + "&q="#"https://www.googleapis.com/youtube/v3/search?part=snippet&type=channel&maxResults=2&key=AIzaSyCg0kT3wqdZfjHz1a1vJzZvdpL28rMiRQA&q="
@@ -62,6 +63,7 @@ def apiActivityGet(uid,idType):
 	#print response
 	videoIds = []
 	publicationTimes = []
+	titles = []
 	# print response
 	try:
 		#parse response body
@@ -70,10 +72,11 @@ def apiActivityGet(uid,idType):
 			if activity['snippet']['type'] == 'upload':
 				videoIds.append(activity['contentDetails']['upload']['videoId'])
 				publicationTimes.append(activity['snippet']['publishedAt'])
+				titles.append(activity['snippet']['title'])
 	except:
 		pass
 	
-	return (channelId,videoIds,publicationTimes)
+	return (channelId,videoIds,publicationTimes,titles )
 
 def getUpdate(artistId,url):
 	
@@ -87,9 +90,9 @@ def getUpdate(artistId,url):
 		uid = url[23:]
 		idType = 'name'
 
-	(channelId,videoIds,publicationTimes) = apiActivityGet(uid,idType)	
+	(channelId,videoIds,publicationTimes,titles) = apiActivityGet(uid,idType)	
 	# print channelId + '\t' + str(videoIds) + '\t' + str(publicationTimes)
-	return artistId, channelId, videoIds, publicationTimes
+	return artistId, channelId, videoIds, publicationTimes,titles
 
 outputs = open('youtubeUpdate.txt','wb')
 csvWriter = csv.writer(outputs, delimiter = '\t')
@@ -97,28 +100,56 @@ csvWriter.writerow(['artistId','channelId','Recently Uploaded Videos','Upload Ti
 
 def readLinkFile(filname):
 	inputs = open(filname,'rb')
-	
+	outputs = open('youtubeUpdate.json','wb')	
 
 	csvReadr = csv.reader(inputs, delimiter = '\t')
 	csvReadr.next() #skip header
 
 	
 	num_cores = multiprocessing.cpu_count()- 1
+	outputDict = {}
 
-	results = Parallel(n_jobs=num_cores)(delayed(updateAndwrite)(i,idx) for idx,i in enumerate(csvReadr))  
-	# for idx,row in enumerate(csvReadr):
-	# 	if idx < 5:
-			
-	# 	else:
-	# 		break
+	# results = Parallel(n_jobs=num_cores)(delayed(updateAndwrite)(i,idx,outputDict) for idx,i in enumerate(csvReadr))  
+	for idx,row in enumerate(csvReadr):
+		# print idx
+		if idx < 5:
+			updateAndwrite(row,idx,outputDict)
+		else:
+			break
 	inputs.close()
+	# outputs.close()
+	srted = sorted(outputDict.items())
+	# print srted
+	finDict = {}
+	for item in srted:
+		print item[0]
+		finDict[item[0]] = outputDict[item[0]]
+	
+	json.dump(finDict,outputs)
 	outputs.close()
-	return results
+	return (finDict,outputDict)
 
-def updateAndwrite(row,idx):
+def updateAndwrite(row,idx,outputDict):
 	print idx
 	artistId = row[0]
 	url = row[1]
-	update = getUpdate(artistId,url)
-	csvWriter.writerow(update)
+	(artistId, channelId, videoIds, publicationTimes,titles) = getUpdate(artistId,url)
+	# csvWriter.writerow(update)
+	for idx,video in enumerate(videoIds):
+		timeUp = publicationTimes[idx]
+		formatedTime = dateutil.parser.parse(timeUp)
+		dat = str(formatedTime.year)  + '-'+str(formatedTime.month) + '-'+ str(formatedTime.day)
+		videoObject = {}
+		videoObject['videoId'] = video
+		videoObject['time'] = str(formatedTime.hour) + ':'+str(formatedTime.minute) + ':'+str(formatedTime.second) 
+		videoObject['artistId'] = artistId
+		videoObject['title'] = titles[idx]
+		videoObject['channelId'] = channelId
+
+		if dat in outputDict:
+			outputDict[dat].append(videoObject)
+		else:
+			outputDict[dat] = []
+			outputDict[dat].append(videoObject)
+	print outputDict
 	return 'done'
