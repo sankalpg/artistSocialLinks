@@ -13,11 +13,13 @@ import nltk
 import time
 from joblib import Parallel, delayed
 import multiprocessing
+from multiprocessing import Process, Manager
 import csv
 import urllib3
 import dateutil.parser
+from collections import OrderedDict
 # AIzaSyBpMTMC61LBMinww2etKXw2CrqwtbWjemI
-youtubeKey = 'AIzaSyDeZXABKSQATB-LjcxeOw3M3ppInSjEwzc'
+youtubeKey = 'AIzaSyCleMRxeVkRDzBHDGWvUk-gBu7qPLrMCj8'
 youtubeGetChannelIdUrl = "https://www.googleapis.com/youtube/v3/search?part=snippet&type=channel&maxResults=2&key=" + youtubeKey + "&q="#"https://www.googleapis.com/youtube/v3/search?part=snippet&type=channel&maxResults=2&key=AIzaSyCg0kT3wqdZfjHz1a1vJzZvdpL28rMiRQA&q="
 youtubeGetActivityUrl = "https://www.googleapis.com/youtube/v3/activities?part=snippet%2CcontentDetails&maxResults=5&key=" + youtubeKey + "&channelId=" #AIzaSyBpMTMC61LBMinww2etKXw2CrqwtbWjemI"
 
@@ -50,7 +52,7 @@ def apiActivityGet(uid,idType):
 		channelId = uid
 
 	if channelId == None:
-		return ('',[],[])
+		return ('',[],[],[])
 	url = youtubeGetActivityUrl
 	url += channelId
 	# print url
@@ -74,6 +76,7 @@ def apiActivityGet(uid,idType):
 				publicationTimes.append(activity['snippet']['publishedAt'])
 				titles.append(activity['snippet']['title'])
 	except:
+		print '12311213'
 		pass
 	
 	return (channelId,videoIds,publicationTimes,titles )
@@ -94,9 +97,9 @@ def getUpdate(artistId,url):
 	# print channelId + '\t' + str(videoIds) + '\t' + str(publicationTimes)
 	return artistId, channelId, videoIds, publicationTimes,titles
 
-outputs = open('youtubeUpdate.txt','wb')
-csvWriter = csv.writer(outputs, delimiter = '\t')
-csvWriter.writerow(['artistId','channelId','Recently Uploaded Videos','Upload Times'])
+# outputs = open('youtubeUpdate.txt','wb')
+# csvWriter = csv.writer(outputs, delimiter = '\t')
+# csvWriter.writerow(['artistId','channelId','Recently Uploaded Videos','Upload Times'])
 
 def readLinkFile(filname):
 	inputs = open(filname,'rb')
@@ -104,52 +107,88 @@ def readLinkFile(filname):
 
 	csvReadr = csv.reader(inputs, delimiter = '\t')
 	csvReadr.next() #skip header
-
 	
-	num_cores = multiprocessing.cpu_count()- 1
+	# manager = Manager()
+	# outputDict = manager.dict()
+	
+	num_cores = multiprocessing.cpu_count() #- 1
+	
 	outputDict = {}
+	results = Parallel(n_jobs=num_cores)(delayed(updateAndwrite)(i,idx) for idx,i in enumerate(csvReadr))  
+	# for idx,row in enumerate(csvReadr):
+	# 	# print idx
+	# 	if idx < 5:
+	# 		updateAndwrite(row,idx,outputDict)
+	# 	else:
+	# 		break
+	# global outputDict
+	# print results
+	# outputDict = results[-1]
 
-	# results = Parallel(n_jobs=num_cores)(delayed(updateAndwrite)(i,idx,outputDict) for idx,i in enumerate(csvReadr))  
-	for idx,row in enumerate(csvReadr):
-		# print idx
-		if idx < 5:
-			updateAndwrite(row,idx,outputDict)
-		else:
-			break
+	for eachObj in results:
+		for eachVid in eachObj:
+			if outputDict.has_key(eachVid['date']):
+				 	# outputDict[dat]+= videoObject
+			 	outputDict[eachVid['date']].append(eachVid)
+			else:
+		 		outputDict[eachVid['date']] = []
+		 		outputDict[eachVid['date']].append(eachVid)
+			# print outputDict
+
+	# print outputDict
 	inputs.close()
 	# outputs.close()
-	srted = sorted(outputDict.items())
-	# print srted
-	finDict = {}
-	for item in srted:
-		print item[0]
-		finDict[item[0]] = outputDict[item[0]]
-	
-	json.dump(finDict,outputs)
-	outputs.close()
-	return (finDict,outputDict)
 
-def updateAndwrite(row,idx,outputDict):
+	srted = OrderedDict(sorted(outputDict.items(), reverse = True))
+	# print srted
+	# finDict = {}
+	# for item in srted:
+	# 	print item[0]
+	# 	print outputDict[item[0]]
+	# 	finDict[item[0]] = outputDict[item[0]]
+	# 	print finDict
+	
+	json.dump(srted,outputs)
+	outputs.close()
+	return srted,outputDict #(srted,outputDict)
+
+def updateAndwrite(row,idx):
+	# global outputDict
 	print idx
 	artistId = row[0]
 	url = row[1]
 	(artistId, channelId, videoIds, publicationTimes,titles) = getUpdate(artistId,url)
 	# csvWriter.writerow(update)
+	attributeList = []
+
 	for idx,video in enumerate(videoIds):
 		timeUp = publicationTimes[idx]
 		formatedTime = dateutil.parser.parse(timeUp)
-		dat = str(formatedTime.year)  + '-'+str(formatedTime.month) + '-'+ str(formatedTime.day)
+		dat = timeUp[0:-14]# dat = str(formatedTime.year)  + '-'+str(formatedTime.month) + '-'+ str(formatedTime.day)
+		# print type(timeUp)
 		videoObject = {}
 		videoObject['videoId'] = video
 		videoObject['time'] = str(formatedTime.hour) + ':'+str(formatedTime.minute) + ':'+str(formatedTime.second) 
 		videoObject['artistId'] = artistId
 		videoObject['title'] = titles[idx]
 		videoObject['channelId'] = channelId
+		videoObject['full_time'] = timeUp
+		videoObject['date'] = dat
+		# print videoObject
+		attributeList.append(videoObject)
 
-		if dat in outputDict:
-			outputDict[dat].append(videoObject)
-		else:
-			outputDict[dat] = []
-			outputDict[dat].append(videoObject)
-	print outputDict
-	return 'done'
+		# print outputDict
+		# if outputDict.has_key(dat):
+		# 	outputDict[dat]+= videoObject
+		# 	# outputDict[dat].append(videoObject)
+		# 	# print 1
+		# else:
+		# 	# print 2
+		# 	outputDict[dat] = []
+		# 	outputDict[dat]+= videoObject
+			# print outputDict
+		# print outputDict
+	# print outputDict
+
+	return attributeList # print outputDict
+	# return 'done'
