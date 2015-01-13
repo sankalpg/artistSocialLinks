@@ -150,11 +150,12 @@ def readLinkFile(filname):
 	
 	json.dump(srted,outputs)
 	outputs.close()
-	return srted,outputDict #(srted,outputDict)
+	# return srted,outputDict #(srted,outputDict)
+now = datetime.datetime.now()
 
 def updateAndwrite(row,idx):
 	# global outputDict
-	print idx
+	# print idx
 	artistId = row[0]
 	url = row[1]
 	(artistId, channelId, videoIds, publicationTimes,titles) = getUpdate(artistId,url)
@@ -163,7 +164,15 @@ def updateAndwrite(row,idx):
 
 	for idx,video in enumerate(videoIds):
 		timeUp = publicationTimes[idx]
+		# print timeUp
+
 		formatedTime = dateutil.parser.parse(timeUp)
+		formatedTimeNaive = formatedTime.replace(tzinfo = None)
+		timeDiff = now - formatedTimeNaive
+		
+		if timeDiff.days > 10:
+			continue
+
 		dat = timeUp[0:-14]# dat = str(formatedTime.year)  + '-'+str(formatedTime.month) + '-'+ str(formatedTime.day)
 		# print type(timeUp)
 		videoObject = {}
