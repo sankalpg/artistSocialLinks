@@ -160,7 +160,7 @@ now = datetime.datetime.now()
 
 def updateAndwrite(row,idx):
 	# global outputDict
-	# print idx
+	print idx
 	artistId = row[0]
 	url = row[1]
 	(artistId, channelId, videoIds, publicationTimes,titles) = getUpdate(artistId,url)
