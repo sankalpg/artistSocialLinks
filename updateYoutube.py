@@ -18,6 +18,7 @@ import csv
 import urllib3
 import dateutil.parser
 from collections import OrderedDict
+import datetime
 # AIzaSyBpMTMC61LBMinww2etKXw2CrqwtbWjemI
 youtubeKey = 'AIzaSyCleMRxeVkRDzBHDGWvUk-gBu7qPLrMCj8'
 youtubeGetChannelIdUrl = "https://www.googleapis.com/youtube/v3/search?part=snippet&type=channel&maxResults=2&key=" + youtubeKey + "&q="#"https://www.googleapis.com/youtube/v3/search?part=snippet&type=channel&maxResults=2&key=AIzaSyCg0kT3wqdZfjHz1a1vJzZvdpL28rMiRQA&q="
@@ -169,7 +170,7 @@ def updateAndwrite(row,idx):
 		formatedTime = dateutil.parser.parse(timeUp)
 		formatedTimeNaive = formatedTime.replace(tzinfo = None)
 		timeDiff = now - formatedTimeNaive
-		
+
 		if timeDiff.days > 10:
 			continue
 
