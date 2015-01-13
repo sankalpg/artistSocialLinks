@@ -106,6 +106,9 @@ def readLinkFile(filname):
 	inputs = open(filname,'rb')
 	outputs = open('youtubeUpdate.json','wb')	
 
+	outputFirstLine = 'Update = '
+	outputs.write(outputFirstLine)
+	
 	csvReadr = csv.reader(inputs, delimiter = '\t')
 	csvReadr.next() #skip header
 	
@@ -152,6 +155,7 @@ def readLinkFile(filname):
 	json.dump(srted,outputs)
 	outputs.close()
 	# return srted,outputDict #(srted,outputDict)
+
 now = datetime.datetime.now()
 
 def updateAndwrite(row,idx):
